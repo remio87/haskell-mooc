@@ -15,7 +15,8 @@ data Tree a = Empty | Node a (Tree a) (Tree a)
 -- because the tree might be empty (i.e. just a Empty)
 
 valAtRoot :: Tree a -> Maybe a
-valAtRoot t = todo
+valAtRoot Empty = Nothing
+valAtRoot (Node val _ _) = Just val
 
 ------------------------------------------------------------------------------
 -- Ex 2: compute the size of a tree, that is, the number of Node
@@ -37,7 +38,8 @@ treeSize t = todo
 --   treeMax (Node 3 (Node 5 Empty Empty) (Node 4 Empty Empty))  ==>  5
 
 treeMax :: Tree Int -> Int
-treeMax = todo
+treeMax Empty = 0
+treeMax (Node val r l) = max val (max (treeMax r) (treeMax l))
 
 ------------------------------------------------------------------------------
 -- Ex 4: implement a function that checks if all tree values satisfy a
@@ -49,7 +51,8 @@ treeMax = todo
 --   allValues (>0) (Node 1 Empty (Node 0 Empty Empty))  ==>  False
 
 allValues :: (a -> Bool) -> Tree a -> Bool
-allValues condition tree = todo
+allValues condition Empty = True
+allValues condition (Node val l r) = condition val && allValues condition l && allValues condition r
 
 ------------------------------------------------------------------------------
 -- Ex 5: implement map for trees.
@@ -61,7 +64,8 @@ allValues condition tree = todo
 --   ==> (Node 2 (Node 3 Empty Empty) (Node 4 Empty Empty))
 
 mapTree :: (a -> b) -> Tree a -> Tree b
-mapTree f t = todo
+mapTree f Empty = Empty
+mapTree f (Node val l r) = Node (f val) (mapTree f l) (mapTree f r)
 
 ------------------------------------------------------------------------------
 -- Ex 6: given a value and a tree, build a new tree that is the same,
@@ -104,8 +108,11 @@ mapTree f t = todo
 --     ==> (Node 1 Empty
 --                 (Node 3 Empty Empty))
 
-cull :: Eq a => a -> Tree a -> Tree a
-cull val tree = todo
+cull :: (Eq a) => a -> Tree a -> Tree a
+cull _ Empty = Empty
+cull val (Node v l r)
+  | val == v = Empty
+  | otherwise = Node v (cull val l) (cull val r)
 
 ------------------------------------------------------------------------------
 -- Ex 7: check if a tree is ordered. A tree is ordered if:
@@ -146,10 +153,26 @@ cull val tree = todo
 --                             (Node 1 Empty Empty))
 --                     (Node 3 Empty Empty))   ==>   True
 
-isOrdered :: Ord a => Tree a -> Bool
-isOrdered = todo
+isOrdered :: (Ord a) => Tree a -> Bool
+isOrdered Empty = True
+isOrdered (Node val l r) =
+  allValues (< val) l
+    && allValues (> val) r
+    && isOrdered l
+    && isOrdered r
 
-------------------------------------------------------------------------------
+-- isOrdered (Node _ Empty Empty) = True
+-- isOrdered (Node val Empty (Node rv rl rr))
+--   | val < rv = isOrdered (Node rv rl rr)
+--   | otherwise = False
+-- isOrdered (Node val (Node lv ll lr) Empty)
+--   | lv < val = isOrdered (Node lv ll lr)
+--   | otherwise = False
+-- isOrdered (Node val (Node lv ll lr) (Node rv rl rr))
+--   | lv < val && val < rv = isOrdered (Node lv ll lr) && isOrdered (Node rv rl rr)
+--   | otherwise = False
+
+-----------------------------------------
 -- Ex 8: a path in a tree can be represented as a list of steps that
 -- go either left or right.
 
@@ -166,7 +189,10 @@ data Step = StepL | StepR
 --   walk [StepL,StepL] (Node 1 (Node 2 Empty Empty) Empty)  ==>  Nothing
 
 walk :: [Step] -> Tree a -> Maybe a
-walk = todo
+walk _ Empty = Nothing
+walk [] (Node val _ _) = Just val
+walk (StepL : ss) (Node _ l _) = walk ss l
+walk (StepR : ss) (Node _ _ r) = walk ss r
 
 ------------------------------------------------------------------------------
 -- Ex 9: given a tree, a path and a value, set the value at the end of
@@ -187,7 +213,10 @@ walk = todo
 --   set [StepL,StepR] 1 (Node 0 Empty Empty)  ==>  (Node 0 Empty Empty)
 
 set :: [Step] -> a -> Tree a -> Tree a
-set path val tree = todo
+set _ _ Empty = Empty
+set [] new (Node val l r) = Node new l r
+set (StepL : ss) new (Node val l r) = Node val (set ss new l) r
+set (StepR : ss) new (Node val l r) = Node val l (set ss new r)
 
 ------------------------------------------------------------------------------
 -- Ex 10: given a value and a tree, return a path that goes from the
@@ -202,5 +231,12 @@ set path val tree = todo
 --                            (Node 1 Empty Empty))
 --                    (Node 5 Empty Empty))                     ==>  Just [StepL,StepR]
 
-search :: Eq a => a -> Tree a -> Maybe [Step]
-search = todo
+search :: (Eq a) => a -> Tree a -> Maybe [Step]
+search _ Empty = Nothing
+search s (Node val l r)
+  | s == val = Just []
+  | otherwise = case search s l of
+      Just a -> Just (StepL : a)
+      Nothing -> case search s r of
+        Just a -> Just (StepR : a)
+        Nothing -> Nothing

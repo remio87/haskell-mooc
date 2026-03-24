@@ -5,13 +5,12 @@
 
 module Set3a where
 
-import Mooc.Todo
-
 -- Some imports you'll need.
 -- Do not add any other imports! :)
 import Data.Char
 import Data.Either
 import Data.List
+import Mooc.Todo
 
 ------------------------------------------------------------------------------
 -- Ex 1: implement the function maxBy that takes as argument a
@@ -28,7 +27,9 @@ import Data.List
 --  maxBy head   [1,2,3] [4,5]  ==>  [4,5]
 
 maxBy :: (a -> Int) -> a -> a -> a
-maxBy measure a b = todo
+maxBy measure a b
+  | measure a > measure b = a
+  | otherwise = b
 
 ------------------------------------------------------------------------------
 -- Ex 2: implement the function mapMaybe that takes a function and a
@@ -40,7 +41,8 @@ maxBy measure a b = todo
 --   mapMaybe length (Just "abc") ==> Just 3
 
 mapMaybe :: (a -> b) -> Maybe a -> Maybe b
-mapMaybe f x = todo
+mapMaybe f Nothing = Nothing
+mapMaybe f (Just x) = Just . f $ x
 
 ------------------------------------------------------------------------------
 -- Ex 3: implement the function mapMaybe2 that works like mapMaybe
@@ -54,7 +56,9 @@ mapMaybe f x = todo
 --   mapMaybe2 div (Just 6) Nothing   ==>  Nothing
 
 mapMaybe2 :: (a -> b -> c) -> Maybe a -> Maybe b -> Maybe c
-mapMaybe2 f x y = todo
+mapMaybe2 _ Nothing _ = Nothing
+mapMaybe2 _ _ Nothing = Nothing
+mapMaybe2 f (Just x) (Just y) = Just (f x y)
 
 ------------------------------------------------------------------------------
 -- Ex 4: define the functions firstHalf and palindrome so that
@@ -76,9 +80,13 @@ mapMaybe2 f x y = todo
 palindromeHalfs :: [String] -> [String]
 palindromeHalfs xs = map firstHalf (filter palindrome xs)
 
-firstHalf = todo
+firstHalf :: String -> String
+firstHalf xs = take (ceilDiv (length xs) 2) xs
+  where
+    ceilDiv a b = div (a + b - 1) b
 
-palindrome = todo
+palindrome :: String -> Bool
+palindrome xs = xs == reverse xs
 
 ------------------------------------------------------------------------------
 -- Ex 5: Implement a function capitalize that takes in a string and
@@ -96,7 +104,10 @@ palindrome = todo
 --   capitalize "goodbye cruel world" ==> "Goodbye Cruel World"
 
 capitalize :: String -> String
-capitalize = todo
+capitalize str = unwords (map capitalizeFirst (words str))
+
+capitalizeFirst :: String -> String
+capitalizeFirst (x : xs) = toUpper x : xs
 
 ------------------------------------------------------------------------------
 -- Ex 6: powers k max should return all the powers of k that are less
@@ -135,7 +146,7 @@ powers k max = todo
 --   in while check tail "xyzAvvt"
 --     ==> Avvt
 
-while :: (a->Bool) -> (a->a) -> a -> a
+while :: (a -> Bool) -> (a -> a) -> a -> a
 while check update value = todo
 
 ------------------------------------------------------------------------------
@@ -161,12 +172,12 @@ whileRight check x = todo
 -- for the whileRight examples:
 -- step k x doubles x if it's less than k
 step :: Int -> Int -> Either Int Int
-step k x = if x<k then Right (2*x) else Left x
+step k x = if x < k then Right (2 * x) else Left x
 
 -- bomb x implements a countdown: it returns x-1 or "BOOM" if x was 0
 bomb :: Int -> Either String Int
 bomb 0 = Left "BOOM"
-bomb x = Right (x-1)
+bomb x = Right (x - 1)
 
 ------------------------------------------------------------------------------
 -- Ex 9: given a list of strings and a length, return all strings that
@@ -194,7 +205,6 @@ joinToLength = todo
 --   [] +|+ [True]        ==> [True]
 --   [] +|+ []            ==> []
 
-
 ------------------------------------------------------------------------------
 -- Ex 11: remember the lectureParticipants example from Lecture 2? We
 -- used a value of type [Either String Int] to store some measurements
@@ -210,7 +220,13 @@ joinToLength = todo
 --   sumRights [Left "bad!", Left "missing"]         ==>  0
 
 sumRights :: [Either a Int] -> Int
-sumRights = todo
+sumRights xs = sum $ map (either (const 0) id) xs
+
+-- sumRights = sum . rights
+
+-- sumRights [] = 0
+-- sumRights (Right x : xs) = x + sumRights xs
+-- sumRights (Left x : xs) = sumRights xs
 
 ------------------------------------------------------------------------------
 -- Ex 12: recall the binary function composition operation
@@ -226,7 +242,9 @@ sumRights = todo
 --   multiCompose [(3*), (2^), (+1)] 0 ==> 6
 --   multiCompose [(+1), (2^), (3*)] 0 ==> 2
 
-multiCompose fs = todo
+multiCompose :: [a -> a] -> a -> a
+multiCompose [] x = x
+multiCompose fs x = multiCompose (init fs) (last fs x)
 
 ------------------------------------------------------------------------------
 -- Ex 13: let's consider another way to compose multiple functions. Given
@@ -247,7 +265,10 @@ multiCompose fs = todo
 --   multiApp id [head, (!!2), last] "axbxc" ==> ['a','b','c'] i.e. "abc"
 --   multiApp sum [head, (!!2), last] [1,9,2,9,3] ==> 6
 
-multiApp = todo
+multiApp :: ([b] -> c) -> [a -> b] -> a -> c
+multiApp f gs x = f (map ($ x) gs)
+
+-- multiApp f gs x = f (zipWith ($) gs (repeat x))
 
 ------------------------------------------------------------------------------
 -- Ex 14: in this exercise you get to implement an interpreter for a
@@ -282,4 +303,26 @@ multiApp = todo
 -- function, the surprise won't work. See section 3.8 in the material.
 
 interpreter :: [String] -> [String]
-interpreter commands = todo
+interpreter commands = go commands 0 0
+  where
+    go :: [String] -> Int -> Int -> [String]
+    go [] _ _ = []
+    go ("up" : cs) x y = go cs x (y + 1)
+    go ("down" : cs) x y = go cs x (y - 1)
+    go ("left" : cs) x y = go cs (x - 1) y
+    go ("right" : cs) x y = go cs (x + 1) y
+    go ("printX" : cs) x y = show x : go cs x y
+    go ("printY" : cs) x y = show y : go cs x y
+    go (_ : cs) x y = go cs x y
+
+-- interpreter :: [String] -> [String]
+-- interpreter commands = interpreter' commands [] 0 0
+
+-- interpreter' :: [String] -> [String] -> Int -> Int -> [String]
+-- interpreter' [] ps _ _ = ps
+-- interpreter' ("up" : cs) ps x y = interpreter' cs ps x (y + 1)
+-- interpreter' ("down" : cs) ps x y = interpreter' cs ps x (y - 1)
+-- interpreter' ("left" : cs) ps x y = interpreter' cs ps (x - 1) y
+-- interpreter' ("right" : cs) ps x y = interpreter' cs ps (x + 1) y
+-- interpreter' ("printX" : cs) ps x y = interpreter' cs (ps ++ [show x]) x y
+-- interpreter' ("printY" : cs) ps x y = interpreter' cs (ps ++ [show y]) x y
