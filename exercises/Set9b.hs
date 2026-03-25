@@ -270,7 +270,16 @@ danger c qs = any dangerByOne qs
 -- solution to this version. Any working solution is okay in this exercise.)
 
 prettyPrint2 :: Size -> Stack -> String
-prettyPrint2 = todo
+prettyPrint2 n qs = concatMap ppLine rows
+  where
+    rows = [1 .. n]
+    ppCell c
+      | elem c qs = 'Q'
+      | danger c qs = '#'
+      | otherwise = '.'
+    ppLine row = map ppCell lin ++ "\n"
+      where
+        lin = [(row, col) | col <- [1 .. n]]
 
 --------------------------------------------------------------------------------
 -- Ex 6: Now that we can check if a piece can be safely placed into a square in
@@ -315,7 +324,15 @@ prettyPrint2 = todo
 --     Q#######
 
 fixFirst :: Size -> Stack -> Maybe Stack
-fixFirst n s = todo
+fixFirst n ((r, c) : qs)
+  -- check outside
+  | r > n || c > n = Nothing
+  -- if danger, move col
+  | danger (r, c) qs = fixFirst n (nextCol (r, c) : qs)
+  -- if there is Queen, move col
+  | elem (r, c) qs = fixFirst n (nextCol (r, c) : qs)
+  -- it's safe! return Just
+  | otherwise = Just ((r, c) : qs)
 
 --------------------------------------------------------------------------------
 -- Ex 7: We need two helper functions for stack management.
