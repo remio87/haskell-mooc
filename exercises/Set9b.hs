@@ -358,10 +358,13 @@ fixFirst n ((r, c) : qs)
 -- Hint: Remember nextRow and nextCol? Use them!
 
 continue :: Stack -> Stack
-continue s = todo
+continue [] = []
+continue (q : qs) = nextRow q : q : qs
 
 backtrack :: Stack -> Stack
-backtrack s = todo
+backtrack [] = []
+backtrack (q : []) = []
+backtrack (_ : q : qs) = nextCol q : qs
 
 --------------------------------------------------------------------------------
 -- Ex 8: Let's take a step. Our algorithm solves the problem (in a
@@ -430,7 +433,10 @@ backtrack s = todo
 --     step 8 [(6,1),(5,4),(4,2),(3,5),(2,3),(1,1)] ==> [(5,5),(4,2),(3,5),(2,3),(1,1)]
 
 step :: Size -> Stack -> Stack
-step = todo
+step _ [] = []
+step n qs = case fixFirst n qs of
+  Nothing -> backtrack qs
+  Just qs -> continue qs
 
 --------------------------------------------------------------------------------
 -- Ex 9: Let's solve our puzzle! The function finish takes a partial
@@ -445,7 +451,9 @@ step = todo
 -- solve the n queens problem.
 
 finish :: Size -> Stack -> Stack
-finish = todo
+finish n qs
+  | length qs <= n = finish n $ step n qs
+  | length qs > n = tail qs
 
 solve :: Size -> Stack
 solve n = finish n [(1, 1)]
