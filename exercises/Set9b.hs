@@ -168,16 +168,16 @@ prettyPrint n coords = addNewlines $ snd $ mapAccumL trav (sort coords) allCells
 --   sameAntidiag (500,5) (5,500) ==> True
 
 sameRow :: Coord -> Coord -> Bool
-sameRow (i, j) (k, l) = todo
+sameRow (i, _) (k, _) = i == k
 
 sameCol :: Coord -> Coord -> Bool
-sameCol (i, j) (k, l) = todo
+sameCol (_, j) (_, l) = j == l
 
 sameDiag :: Coord -> Coord -> Bool
-sameDiag (i, j) (k, l) = todo
+sameDiag (i, j) (k, l) = (i - k) == (j - l)
 
 sameAntidiag :: Coord -> Coord -> Bool
-sameAntidiag (i, j) (k, l) = todo
+sameAntidiag (i, j) (k, l) = (k - i) == (j - l)
 
 --------------------------------------------------------------------------------
 -- Ex 4: In chess, a queen may capture another piece in the same row, column,
@@ -233,7 +233,9 @@ type Candidate = Coord
 type Stack = [Coord]
 
 danger :: Candidate -> Stack -> Bool
-danger = todo
+danger c qs = any dangerByOne qs
+  where
+    dangerByOne q = sameRow c q || sameCol c q || sameDiag c q || sameAntidiag c q
 
 --------------------------------------------------------------------------------
 -- Ex 5: In this exercise, the task is to write a modified version of
