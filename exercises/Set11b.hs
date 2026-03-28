@@ -18,7 +18,14 @@ import System.IO
 --   "xfoobarquux"
 
 appendAll :: IORef String -> [String] -> IO ()
-appendAll = todo
+appendAll ref ss = mapM_ (\s -> modifyIORef ref (++ s)) ss
+
+-- appendAll ref ss = do
+--   modifyIORef ref (\str -> str ++ concat ss)
+
+-- appendAll ref ss = do
+--   str <- readIORef ref
+--   writeIORef ref $ str ++ concat ss
 
 ------------------------------------------------------------------------------
 -- Ex 2: Given two IORefs, swap the values stored in them.
@@ -33,7 +40,11 @@ appendAll = todo
 --   "x"
 
 swapIORefs :: IORef a -> IORef a -> IO ()
-swapIORefs = todo
+swapIORefs x y = do
+  xVal <- readIORef x
+  yVal <- readIORef y
+  writeIORef x yVal
+  writeIORef y xVal
 
 ------------------------------------------------------------------------------
 -- Ex 3: sometimes one bumps into IO operations that return IO
