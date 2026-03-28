@@ -164,7 +164,16 @@ ask = do
   return $ line == "Y"
 
 while :: IO Bool -> IO () -> IO ()
-while cond op = todo
+while cond op = whenM cond $ do
+  op
+  while cond op
+
+--   cond' <- cond
+--   if cond'
+--     then do
+--       op
+--       while cond op
+--     else return ()
 
 ------------------------------------------------------------------------------
 -- Ex 10: given a string and an IO operation, print the string, run
@@ -184,4 +193,8 @@ while cond op = todo
 --     4. returns the line read from the user
 
 debug :: String -> IO a -> IO a
-debug s op = todo
+debug s op = do
+  putStrLn s
+  res <- op
+  putStrLn s
+  return res
