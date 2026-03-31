@@ -38,10 +38,10 @@ incrementAll x = (+ 1) <$> x
 --       ==> Just [Just True,Nothing]
 
 fmap2 :: (Functor f, Functor g) => (a -> b) -> f (g a) -> f (g b)
-fmap2 = todo
+fmap2 fn functor = fmap (fmap fn) functor
 
 fmap3 :: (Functor f, Functor g, Functor h) => (a -> b) -> f (g (h a)) -> f (g (h b))
-fmap3 = todo
+fmap3 fn functor = fmap (fmap2 fn) functor
 
 ------------------------------------------------------------------------------
 -- Ex 3: below you'll find a type Result that works a bit like Maybe,
@@ -54,7 +54,9 @@ data Result a = MkResult a | NoResult | Failure String
   deriving (Show)
 
 instance Functor Result where
-  fmap f result = todo
+  fmap f (MkResult a) = MkResult (f a)
+  fmap f NoResult = NoResult
+  fmap f (Failure str) = Failure str
 
 ------------------------------------------------------------------------------
 -- Ex 4: Here's a reimplementation of the Haskell list type. You might
@@ -67,7 +69,9 @@ instance Functor Result where
 data List a = Empty | LNode a (List a)
   deriving (Show)
 
-instance Functor List
+instance Functor List where
+  fmap f Empty = Empty
+  fmap f (LNode a l) = LNode (f a) (fmap f l)
 
 ------------------------------------------------------------------------------
 -- Ex 5: Here's another list type. This time every node contains two
@@ -81,7 +85,9 @@ instance Functor List
 data TwoList a = TwoEmpty | TwoNode a a (TwoList a)
   deriving (Show)
 
-instance Functor TwoList
+instance Functor TwoList where
+  fmap f TwoEmpty = TwoEmpty
+  fmap f (TwoNode a b l) = TwoNode (f a) (f b) (fmap f l)
 
 ------------------------------------------------------------------------------
 -- Ex 6: Count all occurrences of a given element inside a Foldable.
@@ -94,7 +100,13 @@ instance Functor TwoList
 --   count 'c' (Just 'c') ==> 1
 
 count :: (Eq a, Foldable f) => a -> f a -> Int
-count = todo
+count a = length . filter (== a) . toList
+
+-- count a foldable = foldr f 0 foldable
+--   where
+--     f el acc
+--       | el == a = acc + 1
+--       | otherwise = acc
 
 ------------------------------------------------------------------------------
 -- Ex 7: Return all elements that are in two Foldables, as a list.
