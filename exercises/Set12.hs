@@ -1,3 +1,5 @@
+{-# LANGUAGE InstanceSigs #-}
+
 module Set12 where
 
 import Data.Foldable
@@ -117,7 +119,10 @@ count a = length . filter (== a) . toList
 --   inBoth Nothing [3]    ==> []
 
 inBoth :: (Foldable f, Foldable g, Eq a) => f a -> g a -> [a]
-inBoth = todo
+inBoth f g = [x | x <- ft, elem x gt]
+  where
+    ft = toList f
+    gt = toList g
 
 ------------------------------------------------------------------------------
 -- Ex 8: Implement the instance Foldable List.
@@ -130,7 +135,8 @@ inBoth = todo
 --   length (LNode 1 (LNode 2 (LNode 3 Empty))) ==> 3
 
 instance Foldable List where
-  foldr = todo
+  foldr _ acc Empty = acc
+  foldr fn acc (LNode val next) = fn val (foldr fn acc next)
 
 ------------------------------------------------------------------------------
 -- Ex 9: Implement the instance Foldable TwoList.
@@ -140,7 +146,9 @@ instance Foldable List where
 --   length (TwoNode 0 1 (TwoNode 2 3 TwoEmpty)) ==> 4
 
 instance Foldable TwoList where
-  foldr = todo
+  foldr :: (a -> b -> b) -> b -> TwoList a -> b
+  foldr _ acc TwoEmpty = acc
+  foldr fn acc (TwoNode a b n) = fn a (fn b (foldr fn acc n))
 
 ------------------------------------------------------------------------------
 -- Ex 10: (Tricky!) Fun a is a type that wraps a function Int -> a.
@@ -154,7 +162,9 @@ data Fun a = Fun (Int -> a)
 runFun :: Fun a -> Int -> a
 runFun (Fun f) x = f x
 
-instance Functor Fun
+instance Functor Fun where
+  fmap :: (a -> b) -> Fun a -> Fun b
+  fmap f (Fun a) = Fun (f . a)
 
 ------------------------------------------------------------------------------
 -- Ex 11: (Tricky!) You'll find the binary tree type from Set 5b
