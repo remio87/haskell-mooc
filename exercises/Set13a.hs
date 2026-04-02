@@ -43,19 +43,28 @@ readNames s =
 -- (NB! There are obviously other corner cases like the inputs " " and
 -- "a b c", but you don't need to worry about those here)
 split :: String -> Maybe (String, String)
-split = todo
+split str = case ws of
+  [x] -> Nothing
+  [x, y] -> Just (x, y)
+  _ -> Nothing
+  where
+    ws = words str
 
 -- checkNumber should take a pair of two strings and return them
 -- unchanged if they don't contain numbers. Otherwise Nothing is
 -- returned.
 checkNumber :: (String, String) -> Maybe (String, String)
-checkNumber = todo
+checkNumber (f, l)
+  | any isDigit (f ++ l) = Nothing
+  | otherwise = Just (f, l)
 
 -- checkCapitals should take a pair of two strings and return them
 -- unchanged if both start with a capital letter. Otherwise Nothing is
 -- returned.
 checkCapitals :: (String, String) -> Maybe (String, String)
-checkCapitals (for, sur) = todo
+checkCapitals (for, sur)
+  | (isLower $ head for) || (isLower $ head sur) = Nothing
+  | otherwise = Just (for, sur)
 
 ------------------------------------------------------------------------------
 -- Ex 2: Given a list of players and their scores (as [(String,Int)]),
@@ -82,7 +91,23 @@ checkCapitals (for, sur) = todo
 --     ==> Just "a"
 
 winner :: [(String, Int)] -> String -> String -> Maybe String
-winner scores player1 player2 = todo
+winner scores player1 player2 =
+  lookup player1 scores
+    ?> ( \s1 ->
+           lookup player2 scores
+             ?> ( \s2 ->
+                    if s1 >= s2
+                      then Just player1
+                      else Just player2
+                )
+       )
+
+-- winner scores player1 player2 = do
+--   score1 <- lookup player1 scores
+--   score2 <- lookup player2 scores
+--   if score1 >= score2
+--     then Just player1
+--     else Just player2
 
 ------------------------------------------------------------------------------
 -- Ex 3: given a list of indices and a list of values, return the sum
@@ -99,8 +124,31 @@ winner scores player1 player2 = todo
 --  selectSum [0..10] [4,6,9,20]
 --    Nothing
 
+safeIndex :: [a] -> Int -> Maybe a
+safeIndex l i
+  | (length l > i) && (i >= 0) = Just (l !! i)
+  | otherwise = Nothing
+
 selectSum :: (Num a) => [a] -> [Int] -> Maybe a
-selectSum xs is = todo
+selectSum xs is = sum <$> mapM (safeIndex xs) is
+
+-- selectSum :: (Num a) => [a] -> [Int] -> Maybe a
+-- selectSum xs is =
+--   let sumMaybe = mapM (safeIndex xs) is
+--    in case sumMaybe of
+--         Nothing -> Nothing
+--         Just vals -> Just (sum vals)
+
+-- selectSum :: (Num a) => [a] -> [Int] -> Maybe a
+-- selectSum xs is = selectSum' xs is 0
+
+-- selectSum' :: (Num a) => [a] -> [Int] -> a -> Maybe a
+-- selectSum' _ [] sm = Just sm
+-- selectSum' xs (i : is) sm =
+--   let safei = safeIndex xs i
+--    in case safei of
+--         Nothing -> Nothing
+--         Just val -> selectSum' xs is (sm + val)
 
 ------------------------------------------------------------------------------
 -- Ex 4: Here is the Logger monad from the course material. Implement
