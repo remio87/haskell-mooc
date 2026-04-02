@@ -183,7 +183,20 @@ instance Applicative Logger where
   (<*>) = ap
 
 countAndLog :: (Show a) => (a -> Bool) -> [a] -> Logger Int
-countAndLog = todo
+countAndLog pred [] = return 0
+countAndLog pred (x : xs) = do
+  n1 <-
+    if pred x
+      then Logger [show x] 1
+      else return 0
+  n2 <- countAndLog pred xs
+  return (n1 + n2)
+
+-- countAndLog :: (Show a) => (a -> Bool) -> [a] -> Logger Int
+-- countAndLog pred as = foldM addToLog 0 (filter pred as)
+
+-- addToLog :: (Show a) => Int -> a -> Logger Int
+-- addToLog cnt a = Logger [show a] (cnt + 1)
 
 ------------------------------------------------------------------------------
 -- Ex 5: You can find the Bank and BankOp code from the course
