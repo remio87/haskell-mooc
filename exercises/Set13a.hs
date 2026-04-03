@@ -213,7 +213,11 @@ exampleBank :: Bank
 exampleBank = (Bank (Map.fromList [("harry", 10), ("cedric", 7), ("ginny", 1)]))
 
 balance :: String -> BankOp Int
-balance accountName = todo
+balance accountName =
+  BankOp
+    ( \(Bank accounts) ->
+        (Map.findWithDefault 0 accountName accounts, Bank accounts)
+    )
 
 ------------------------------------------------------------------------------
 -- Ex 6: Using the operations balance, withdrawOp and depositOp, and
@@ -231,7 +235,17 @@ balance accountName = todo
 --     ==> ((),Bank (fromList [("cedric",7),("ginny",1),("harry",10)]))
 
 rob :: String -> String -> BankOp ()
-rob from to = todo
+rob from to =
+  balance from
+    +> ( \amount ->
+           withdrawOp from amount
+             +>> depositOp to amount
+       )
+
+-- rob from to =
+--   balance from
+--     +> (\balanceAmount -> withdrawOp from balanceAmount)
+--     +> (\withdrawAmount -> depositOp to withdrawAmount)
 
 ------------------------------------------------------------------------------
 -- Ex 7: using the State monad, write the operation `update` that first
