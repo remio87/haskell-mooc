@@ -1,15 +1,14 @@
-{-# OPTIONS_GHC -Wno-noncanonical-monad-instances #-} -- this silences an uninteresting warning
+-- this silences an uninteresting warning
+{-# OPTIONS_GHC -Wno-noncanonical-monad-instances #-}
 
 module Set13b where
-
-import Mooc.Todo
 
 import Control.Monad
 import Control.Monad.Trans.State
 import Data.Char
 import Data.IORef
 import Data.List
-
+import Mooc.Todo
 
 ------------------------------------------------------------------------------
 -- Ex 1: implement the function ifM, that takes three monadic
@@ -39,9 +38,9 @@ import Data.List
 test :: State Int Bool
 test = do
   x <- get
-  return (x<10)
+  return (x < 10)
 
-ifM :: Monad m => m Bool -> m a -> m a -> m a
+ifM :: (Monad m) => m Bool -> m a -> m a -> m a
 ifM opBool opThen opElse = todo
 
 ------------------------------------------------------------------------------
@@ -77,13 +76,13 @@ ifM opBool opThen opElse = todo
 -- examples & test outputs.
 safeDiv :: Double -> Double -> Maybe Double
 safeDiv x 0.0 = Nothing
-safeDiv x y = Just (x/y)
+safeDiv x y = Just (x / y)
 
 perhapsIncrement :: Bool -> Int -> State Int ()
-perhapsIncrement True x = modify (+x)
+perhapsIncrement True x = modify (+ x)
 perhapsIncrement False _ = return ()
 
-mapM2 :: Monad m => (a -> b -> m c) -> [a] -> [b] -> m [c]
+mapM2 :: (Monad m) => (a -> b -> m c) -> [a] -> [b] -> m [c]
 mapM2 op xs ys = todo
 
 ------------------------------------------------------------------------------
@@ -91,13 +90,15 @@ mapM2 op xs ys = todo
 --
 -- In this exercise, you'll process mazes, described as lists like this:
 
-maze1 :: [(String,[String])]
-maze1 = [("Entry",["Pit","Corridor 1"])
-        ,("Pit",[])
-        ,("Corridor 1",["Entry","Dead end"])
-        ,("Dead end",["Corridor 1"])
-        ,("Corridor 2",["Corridor 3"])
-        ,("Corridor 3",["Corridor 2"])]
+maze1 :: [(String, [String])]
+maze1 =
+  [ ("Entry", ["Pit", "Corridor 1"]),
+    ("Pit", []),
+    ("Corridor 1", ["Entry", "Dead end"]),
+    ("Dead end", ["Corridor 1"]),
+    ("Corridor 2", ["Corridor 3"]),
+    ("Corridor 3", ["Corridor 2"])
+  ]
 
 -- This means that you can get from Entry to Pit or Corridor 1, and
 -- from Corridor 1 you can get back to Entry or the Dead end, and so
@@ -140,15 +141,14 @@ maze1 = [("Entry",["Pit","Corridor 1"])
 --   runState (visit maze1 "Entry") ["Corridor 1"]
 --     ==> ((),["Pit","Entry","Corridor 1"])
 
-
-visit :: [(String,[String])] -> String -> State [String] ()
+visit :: [(String, [String])] -> String -> State [String] ()
 visit maze place = todo
 
 -- Now you should be able to implement path using visit. If you run
 -- visit on a place using an empty state, you'll get a state that
 -- lists all the places that are reachable from the starting place.
 
-path :: [(String,[String])] -> String -> String -> Bool
+path :: [(String, [String])] -> String -> String -> Bool
 path maze place1 place2 = todo
 
 ------------------------------------------------------------------------------
@@ -164,7 +164,7 @@ path maze place1 place2 = todo
 --
 -- PS. The tests don't care about the order of results.
 
-findSum2 :: [Int] -> [Int] -> [(Int,Int,Int)]
+findSum2 :: [Int] -> [Int] -> [(Int, Int, Int)]
 findSum2 ks ns = todo
 
 ------------------------------------------------------------------------------
@@ -251,7 +251,7 @@ f2 acc x = todo
 --   MkResult 1 >>= (\x -> MkResult (x+1))
 --     ==> MkResult 2
 
-data Result a = MkResult a | NoResult | Failure String deriving (Show,Eq)
+data Result a = MkResult a | NoResult | Failure String deriving (Show, Eq)
 
 instance Functor Result where
   -- The same Functor instance you used in Set12 works here.
@@ -290,27 +290,27 @@ instance Monad Result where
 --   runSL (replicateM_ 5 (modifySL (+1) >> getSL >>= \x -> msgSL ("got "++show x))) 1
 --      ==> ((),6,["got 2","got 3","got 4","got 5","got 6"])
 
-data SL a = SL (Int -> (a,Int,[String]))
+data SL a = SL (Int -> (a, Int, [String]))
 
 -- Run an SL operation with the given starting state
-runSL :: SL a -> Int -> (a,Int,[String])
+runSL :: SL a -> Int -> (a, Int, [String])
 runSL (SL f) state = f state
 
 -- Write a log message
 msgSL :: String -> SL ()
-msgSL msg = SL (\s -> ((),s,[msg]))
+msgSL msg = SL (\s -> ((), s, [msg]))
 
 -- Fetch the state
 getSL :: SL Int
-getSL = SL (\s -> (s,s,[]))
+getSL = SL (\s -> (s, s, []))
 
 -- Overwrite the state
 putSL :: Int -> SL ()
-putSL s' = SL (\s -> ((),s',[]))
+putSL s' = SL (\s -> ((), s', []))
 
 -- Modify the state
-modifySL :: (Int->Int) -> SL ()
-modifySL f = SL (\s -> ((),f s,[]))
+modifySL :: (Int -> Int) -> SL ()
+modifySL f = SL (\s -> ((), f s, []))
 
 instance Functor SL where
   -- implement fmap
