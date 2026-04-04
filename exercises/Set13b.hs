@@ -41,7 +41,17 @@ test = do
   return (x < 10)
 
 ifM :: (Monad m) => m Bool -> m a -> m a -> m a
-ifM opBool opThen opElse = todo
+ifM opBool opThen opElse =
+  opBool
+    >>= ( \b ->
+            if b then opThen else opElse
+        )
+
+-- ifM opBool opThen opElse = do
+--   b <- opBool
+--   if b
+--     then opThen
+--     else opElse
 
 ------------------------------------------------------------------------------
 -- Ex 2: the standard library function Control.Monad.mapM defines a
@@ -83,7 +93,14 @@ perhapsIncrement True x = modify (+ x)
 perhapsIncrement False _ = return ()
 
 mapM2 :: (Monad m) => (a -> b -> m c) -> [a] -> [b] -> m [c]
-mapM2 op xs ys = todo
+mapM2 _ [] _ = return []
+mapM2 _ _ [] = return []
+mapM2 op xs ys = sequence $ zipWith op xs ys
+
+-- mapM2 op (x : xs) (y : ys) = do
+--   c <- op x y
+--   cs <- mapM2 op xs ys
+--   return (c : cs)
 
 ------------------------------------------------------------------------------
 -- Ex 3: Finding paths.
@@ -142,14 +159,22 @@ maze1 =
 --     ==> ((),["Pit","Entry","Corridor 1"])
 
 visit :: [(String, [String])] -> String -> State [String] ()
-visit maze place = todo
+visit maze place = do
+  visited <- get
+  if not (elem place visited)
+    then do
+      modify (place :)
+      case lookup place maze of
+        Nothing -> return ()
+        Just ps -> mapM_ (visit maze) ps
+    else return ()
 
 -- Now you should be able to implement path using visit. If you run
 -- visit on a place using an empty state, you'll get a state that
 -- lists all the places that are reachable from the starting place.
 
 path :: [(String, [String])] -> String -> String -> Bool
-path maze place1 place2 = todo
+path maze place1 place2 = elem place2 (snd $ runState (visit maze place1) [])
 
 ------------------------------------------------------------------------------
 -- Ex 4: Given two lists, ks and ns, find numbers i and j from ks,
@@ -165,7 +190,17 @@ path maze place1 place2 = todo
 -- PS. The tests don't care about the order of results.
 
 findSum2 :: [Int] -> [Int] -> [(Int, Int, Int)]
-findSum2 ks ns = todo
+findSum2 ks ns = [(k1, k2, n) | k1 <- ks, k2 <- ks, n <- ns, k1 + k2 == n]
+
+-- findSum2 ks ns = ks >>= (\k1 -> ks >>= (\k2 -> ns >>= (\n -> if k1 + k2 == n then [(k1, k2, n)] else [])))
+
+-- findSum2 ks ns = do
+--   k1 <- ks
+--   k2 <- ks
+--   n <- ns
+--   if k1 + k2 == n
+--     then [(k1, k2, n)]
+--     else []
 
 ------------------------------------------------------------------------------
 -- Ex 5: compute all possible sums of elements from the given
@@ -186,7 +221,12 @@ findSum2 ks ns = todo
 --     ==> [7,3,5,1,6,2,4,0]
 
 allSums :: [Int] -> [Int]
-allSums xs = todo
+allSums [] = [0]
+allSums (x : xs) = concatMap (\toAdd -> map (+ toAdd) (allSums xs)) [x, 0]
+
+-- allSums (x : xs) = do
+--   toAdd <- [x, 0]
+--   map (+ toAdd) (allSums xs)
 
 ------------------------------------------------------------------------------
 -- Ex 6: the standard library defines the function
