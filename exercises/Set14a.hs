@@ -27,7 +27,11 @@ import Mooc.Todo
 --  greetText (T.pack "Benedict Cumberbatch") ==> "Hello, Benedict Cumber...!"
 
 greetText :: T.Text -> T.Text
-greetText = todo
+greetText t =
+  let hel = T.pack "Hello, "
+   in if T.length t <= 15
+        then hel <> t <> T.pack "!"
+        else hel <> T.take 15 t <> T.pack "...!"
 
 ------------------------------------------------------------------------------
 -- Ex 2: Capitalize every second word of a Text.
