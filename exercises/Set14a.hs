@@ -3,17 +3,16 @@ module Set14a where
 -- Remember to browse the docs of the Data.Text and Data.ByteString
 -- libraries while working on the exercises!
 
-import Mooc.Todo
-
 import Data.Bits
-import Data.Char
-import Data.Text.Encoding
-import Data.Word
-import Data.Int
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
+import Data.Char
+import Data.Int
+import qualified Data.Text as T
+import Data.Text.Encoding
+import qualified Data.Text.Lazy as TL
+import Data.Word
+import Mooc.Todo
 
 ------------------------------------------------------------------------------
 -- Ex 1: Greet a person. Given the name of a person as a Text, return
@@ -127,4 +126,3 @@ countUtf8Chars = todo
 
 pingpong :: B.ByteString -> BL.ByteString
 pingpong = todo
-
