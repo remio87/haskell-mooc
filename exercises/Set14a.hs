@@ -43,7 +43,17 @@ greetText t =
 --     ==> "WORD"
 
 shout :: T.Text -> T.Text
-shout = todo
+shout t =
+  let ts = T.words t
+      ws = zipWith (\i w -> if even i then T.toUpper w else w) [0 ..] ts
+   in T.unwords ws
+
+--   let ts = T.splitOn (T.pack " ") t
+--       tf = map even [0 ..]
+--       zipped = zip tf ts
+--       addSpace tx = tx <> T.pack " "
+--       fn (cond, tex) = if cond then addSpace $ T.toUpper tex else addSpace $ tex
+--    in T.stripEnd $ T.concat (map fn zipped)
 
 ------------------------------------------------------------------------------
 -- Ex 3: Find the longest sequence of a single character repeating in
@@ -53,8 +63,18 @@ shout = todo
 --   longestRepeat (T.pack "") ==> 0
 --   longestRepeat (T.pack "aabbbbccc") ==> 4
 
+data Stroke = Stroke (Maybe Char) Int Int
+
 longestRepeat :: T.Text -> Int
-longestRepeat = todo
+longestRepeat t = case T.foldl fn (Stroke Nothing 0 0) t of
+  Stroke _ _ mx -> mx
+  where
+    fn :: Stroke -> Char -> Stroke
+    fn (Stroke Nothing _ mx) next = Stroke (Just next) 1 mx
+    fn (Stroke (Just char) cur mx) next =
+      if char == next
+        then Stroke (Just next) (cur + 1) (max (cur + 1) mx)
+        else Stroke (Just next) 1 mx
 
 ------------------------------------------------------------------------------
 -- Ex 4: Given a lazy (potentially infinite) Text, extract the first n
@@ -67,7 +87,7 @@ longestRepeat = todo
 --   takeStrict 15 (TL.pack (cycle "asdf"))  ==>  "asdfasdfasdfasd"
 
 takeStrict :: Int64 -> TL.Text -> T.Text
-takeStrict = todo
+takeStrict n tl = TL.toStrict $ TL.take n tl
 
 ------------------------------------------------------------------------------
 -- Ex 5: Find the difference between the largest and smallest byte
@@ -78,8 +98,19 @@ takeStrict = todo
 --   byteRange (B.pack []) ==> 0
 --   byteRange (B.pack [3]) ==> 0
 
+data Accum = Accum (Maybe (Word8, Word8))
+
 byteRange :: B.ByteString -> Word8
-byteRange = todo
+byteRange bs = case B.foldr fn (Accum Nothing) bs of
+  Accum Nothing -> 0
+  Accum (Just (mi, ma)) -> ma - mi
+  where
+    fn :: Word8 -> Accum -> Accum
+    fn w (Accum Nothing) = Accum (Just (w, w))
+    fn w (Accum (Just (mi, ma))) =
+      let newMin = min mi w
+          newMax = max ma w
+       in Accum (Just (newMin, newMax))
 
 ------------------------------------------------------------------------------
 -- Ex 6: Compute the XOR checksum of a ByteString. The XOR checksum of
@@ -100,7 +131,7 @@ byteRange = todo
 --   xorChecksum (B.pack []) ==> 0
 
 xorChecksum :: B.ByteString -> Word8
-xorChecksum = todo
+xorChecksum bs = B.foldr (\a b -> xor a b) 0 bs
 
 ------------------------------------------------------------------------------
 -- Ex 7: Given a ByteString, compute how many UTF-8 characters it
@@ -117,7 +148,9 @@ xorChecksum = todo
 --   countUtf8Chars (B.drop 1 (encodeUtf8 (T.pack "åäö"))) ==> Nothing
 
 countUtf8Chars :: B.ByteString -> Maybe Int
-countUtf8Chars = todo
+countUtf8Chars chars = case decodeUtf8' chars of
+  Left _ -> Nothing
+  Right tx -> Just $ T.length tx
 
 ------------------------------------------------------------------------------
 -- Ex 8: Given a (nonempty) strict ByteString b, generate an infinite
@@ -129,4 +162,4 @@ countUtf8Chars = todo
 --     ==> [0,1,2,2,1,0,0,1,2,2,1,0,0,1,2,2,1,0,0,1]
 
 pingpong :: B.ByteString -> BL.ByteString
-pingpong = todo
+pingpong bs = BL.cycle $ BL.fromStrict $ bs <> B.reverse bs
