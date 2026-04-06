@@ -10,23 +10,21 @@ module Set14b where
 --
 -- Let's start with some imports:
 
-import Mooc.Todo
-
 -- Utilities
 import qualified Data.ByteString.Lazy as LB
 import Data.Maybe
 import qualified Data.Text as T
-import qualified Data.Text.Read as TR
 import Data.Text.Encoding (encodeUtf8)
-import Text.Read (readMaybe)
-
+import qualified Data.Text.Read as TR
 -- HTTP server
-import Network.Wai (pathInfo, responseLBS, Application)
-import Network.Wai.Handler.Warp (run)
-import Network.HTTP.Types (status200)
 
 -- Database
-import Database.SQLite.Simple (open,execute,execute_,query,query_,Connection,Query(..))
+import Database.SQLite.Simple (Connection, Query (..), execute, execute_, open, query, query_)
+import Mooc.Todo
+import Network.HTTP.Types (status200)
+import Network.Wai (Application, pathInfo, responseLBS)
+import Network.Wai.Handler.Warp (run)
+import Text.Read (readMaybe)
 
 ------------------------------------------------------------------------------
 -- Ex 1: Let's start with implementing some database operations. The
@@ -39,9 +37,13 @@ import Database.SQLite.Simple (open,execute,execute_,query,query_,Connection,Que
 -- these.
 --
 -- Below, you'll find three queries:
+
 -- * initQuery creates the database
+
 -- * depositQuery adds an (account, amount) row into the database
+
 -- * getAllQuery gets all (account, amount) pairs from the database.
+
 --   getAllQuery isn't needed for the implementation, but you can use it
 --   to test your answer.
 --
@@ -59,7 +61,6 @@ import Database.SQLite.Simple (open,execute,execute_,query,query_,Connection,Que
 --   Set14b> deposit db (T.pack "xxx") 7
 --   Set14b> query_ db getAllQuery :: IO [(String,Int)]
 --   [("xxx",13),("yyy",5),("xxx",7)]
-
 
 initQuery :: Query
 initQuery = Query (T.pack "CREATE TABLE IF NOT EXISTS events (account TEXT NOT NULL, amount NUMBER NOT NULL);")
@@ -120,8 +121,11 @@ balance = todo
 -- users can issue: Deposit and Balance.
 --
 -- The HTTP API will use paths like the following:
+
 -- * /deposit/smith/3 will deposit 3 into the account "smith"
+
 -- * /balance/lopez will query the balance of the account "lopez"
+
 --
 -- Your task is to implement the function parseCommand that takes the
 -- pathInfo (remember: a list of Texts) of a request, and returns the
@@ -257,7 +261,6 @@ main = do
 --   - Open <http://localhost:3421/balance/simon> in your browser.
 --     You should see the text 11.
 
-
 ------------------------------------------------------------------------------
 -- Ex 8: Error handling. Modify the parseCommand function so that it
 -- returns Nothing when the input is not valid. Modify the perform
@@ -276,5 +279,3 @@ main = do
 --    - http://localhost:3421/deposit/pekka/1/3
 --    - http://localhost:3421/balance
 --    - http://localhost:3421/balance/matti/pekka
-
-
