@@ -217,7 +217,9 @@ encodeResponse t = LB.fromStrict (encodeUtf8 t)
 -- Remember:
 -- type Application = Request -> (Response -> IO ResponseReceived) -> IO ResponseReceived
 simpleServer :: Application
-simpleServer request respond = todo
+simpleServer _ respond = do
+  let resp = responseLBS status200 [] (encodeResponse $ T.pack "BANK")
+  respond resp
 
 ------------------------------------------------------------------------------
 -- Ex 6: Now we finally have all the pieces we need to actually
@@ -246,7 +248,12 @@ simpleServer request respond = todo
 -- Remember:
 -- type Application = Request -> (Response -> IO ResponseReceived) -> IO ResponseReceived
 server :: Connection -> Application
-server db request respond = todo
+server db request respond = do
+  let path = pathInfo request
+  let comm = parseCommand path
+  res <- perform db comm
+  let resp = responseLBS status200 [] (encodeResponse $ res)
+  respond resp
 
 port :: Int
 port = 3421
