@@ -16,7 +16,7 @@ import Text.Read (readMaybe)
 --  sumTwoMaybes Nothing Nothing    ==> Nothing
 
 sumTwoMaybes :: Maybe Int -> Maybe Int -> Maybe Int
-sumTwoMaybes = todo
+sumTwoMaybes x y = liftA2 (+) x y
 
 ------------------------------------------------------------------------------
 -- Ex 2: Given two lists of words, xs and ys, generate all statements
@@ -35,7 +35,11 @@ sumTwoMaybes = todo
 --         "code is not suffering","code is not life"]
 
 statements :: [String] -> [String] -> [String]
-statements = todo
+statements x y = tripleConcat <$> x <*> [" is ", " is not "] <*> y
+  where
+    tripleConcat a b c = a ++ b ++ c
+
+-- statements x y = liftA2 (++) (liftA2 (++) x [" is ", " is not "]) y
 
 ------------------------------------------------------------------------------
 -- Ex 3: A simple calculator with error handling. Given an operation
@@ -53,7 +57,13 @@ statements = todo
 --  calculator "double" "7x"  ==> Nothing
 
 calculator :: String -> String -> Maybe Int
-calculator = todo
+calculator op valStr = liftA2 ($) opParsed valParsed
+  where
+    valParsed = readMaybe valStr :: Maybe Int
+    opParsed = case op of
+      "negate" -> Just negate
+      "double" -> Just (* 2)
+      _ -> Nothing
 
 ------------------------------------------------------------------------------
 -- Ex 4: Safe division. Implement the function validateDiv that
