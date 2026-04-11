@@ -222,7 +222,22 @@ boolOrInt str =
 --    ==> Errors ["Too long"]
 
 normalizePhone :: String -> Validation String
-normalizePhone = todo
+normalizePhone s =
+  let spaceRemoved = removeSpaces s
+   in notTooLong spaceRemoved <* allDigit spaceRemoved
+
+removeSpaces :: String -> String
+removeSpaces s = filter (not . isSpace) s
+
+allDigit :: String -> Validation String
+allDigit s = traverse checkDigit s
+  where
+    checkDigit c = check (isDigit c) ("Invalid character: " ++ [c]) c
+
+notTooLong :: String -> Validation String
+notTooLong s
+  | length s > 10 = invalid "Too long"
+  | otherwise = pure s
 
 ------------------------------------------------------------------------------
 -- Ex 9: Parsing expressions. The Expression type describes an
