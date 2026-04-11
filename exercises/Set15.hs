@@ -80,7 +80,7 @@ calculator op valStr = liftA2 ($) opParsed valParsed
 --  validateDiv 0 3 ==> Ok 0
 
 validateDiv :: Int -> Int -> Validation Int
-validateDiv = todo
+validateDiv dividend divisor = check (divisor /= 0) "Division by zero!" (div dividend divisor)
 
 ------------------------------------------------------------------------------
 -- Ex 5: Validating street addresses. A street address consists of a
@@ -115,8 +115,18 @@ validateDiv = todo
 data Address = Address String String String
   deriving (Show, Eq)
 
+checkStreetName :: String -> Validation String
+checkStreetName street = check (length street <= 20) "Invalid street name" street
+
+checkStreetNumber :: String -> Validation String
+checkStreetNumber sn = check (all isDigit sn) "Invalid street number" sn
+
+checkPostcode :: String -> Validation String
+checkPostcode p = check (length p == 5 && all isDigit p) "Invalid postcode" p
+
 validateAddress :: String -> String -> String -> Validation Address
-validateAddress streetName streetNumber postCode = todo
+validateAddress streetName streetNumber postCode =
+  Address <$> checkStreetName streetName <*> checkStreetNumber streetNumber <*> checkPostcode postCode
 
 ------------------------------------------------------------------------------
 -- Ex 6: Given the names, ages and employment statuses of two
@@ -144,7 +154,8 @@ twoPersons ::
   f Int ->
   f Bool ->
   f [Person]
-twoPersons name1 age1 employed1 name2 age2 employed2 = todo
+twoPersons name1 age1 employed1 name2 age2 employed2 =
+  sequenceA [Person <$> name1 <*> age1 <*> employed1, Person <$> name2 <*> age2 <*> employed2]
 
 ------------------------------------------------------------------------------
 -- Ex 7: Validate a String that's either a Bool or an Int. The return
@@ -164,7 +175,24 @@ twoPersons name1 age1 employed1 name2 age2 employed2 = todo
 --  boolOrInt "Falseb"  ==> Errors ["Not a Bool","Not an Int"]
 
 boolOrInt :: String -> Validation (Either Bool Int)
-boolOrInt = todo
+boolOrInt str =
+  maybe (invalid "Not a Bool") (pure . Left) (readMaybe str :: Maybe Bool)
+    <|> maybe (invalid "Not an Int") (pure . Right) (readMaybe str :: Maybe Int)
+
+-- boolOrInt str = check checkBool "Not a Bool" maybeBool <|> check checkInt "Not an Int" maybeInt
+--   where
+--     checkBool = case readMaybe str :: Maybe Bool of
+--       Just _ -> True
+--       otherwise -> False
+--     checkInt = case readMaybe str :: Maybe Int of
+--       Just _ -> True
+--       otherwise -> False
+--     maybeBool = case readMaybe str :: Maybe Bool of
+--       Just b -> Left b
+--       otherwise -> Left True
+--     maybeInt = case readMaybe str :: Maybe Int of
+--       Just i -> Right i
+--       otherwise -> Right 0
 
 ------------------------------------------------------------------------------
 -- Ex 8: Improved phone number validation. Implement the function
