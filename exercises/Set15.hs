@@ -281,7 +281,25 @@ data Expression = Plus Arg Arg | Minus Arg Arg
   deriving (Show, Eq)
 
 parseExpression :: String -> Validation Expression
-parseExpression = todo
+parseExpression s =
+  let tokens = words s
+      op = tokens !! 1
+      arg1 = tokens !! 0
+      arg2 = tokens !! 2
+   in if length tokens /= 3
+        then invalid ("Invalid expression: " ++ s)
+        else parseOperator op <*> parseArgs arg1 <*> parseArgs arg2
+
+parseArgs :: String -> Validation Arg
+parseArgs s =
+  check (all isDigit s) ("Invalid number: " ++ s) (Number (read s :: Int))
+    <|> check (all isAlpha s && length s == 1) ("Invalid variable: " ++ s) (Variable $ head s)
+
+parseOperator :: String -> Validation (Arg -> Arg -> Expression)
+parseOperator s
+  | s == "+" = pure Plus
+  | s == "-" = pure Minus
+  | otherwise = invalid ("Unknown operator: " ++ s)
 
 ------------------------------------------------------------------------------
 -- Ex 10: The Priced T type tracks a value of type T, and a price
