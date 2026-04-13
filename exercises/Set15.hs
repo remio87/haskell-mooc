@@ -328,11 +328,11 @@ data Priced a = Priced Int a
   deriving (Show, Eq)
 
 instance Functor Priced where
-  fmap = todo
+  fmap f (Priced p a) = Priced p (f a)
 
 instance Applicative Priced where
-  pure = todo
-  liftA2 = todo
+  pure a = Priced 0 a
+  liftA2 f (Priced p1 a1) (Priced p2 a2) = Priced (p1 + p2) (f a1 a2)
 
 ------------------------------------------------------------------------------
 -- Ex 11: This and the next exercise will use a copy of the
@@ -366,7 +366,7 @@ instance MyApplicative [] where
   myLiftA2 = liftA2
 
 (<#>) :: (MyApplicative f) => f (a -> b) -> f a -> f b
-f <#> x = todo
+f <#> x = myLiftA2 ($) f x
 
 ------------------------------------------------------------------------------
 -- Ex 12: Reimplement fmap using liftA2 and pure. In practical terms,
@@ -383,7 +383,7 @@ f <#> x = todo
 --  myFmap negate [1,2,3]  ==> [-1,-2,-3]
 
 myFmap :: (MyApplicative f) => (a -> b) -> f a -> f b
-myFmap = todo
+myFmap f a = myLiftA2 ($) (myPure f) a
 
 ------------------------------------------------------------------------------
 -- Ex 13: Given a function that returns an Alternative value, and a
@@ -410,7 +410,10 @@ myFmap = todo
 --       ==> Errors ["zero","zero","zero"]
 
 tryAll :: (Alternative f) => (a -> f b) -> [a] -> f b
-tryAll = todo
+tryAll f as = foldr ((<|>) . f) empty as
+
+-- tryAll _ [] = empty
+-- tryAll f (a : as) = f a <|> tryAll f as
 
 ------------------------------------------------------------------------------
 -- Ex 14: Here's the type `Both` that expresses the composition of
@@ -435,7 +438,7 @@ newtype Both f g a = Both (f (g a))
   deriving (Show)
 
 instance (Functor f, Functor g) => Functor (Both f g) where
-  fmap = todo
+  fmap f (Both b) = Both $ fmap (fmap f) b
 
 ------------------------------------------------------------------------------
 -- Ex 15: The composition of two Applicatives is also an Applicative!
@@ -463,5 +466,5 @@ instance (Functor f, Functor g) => Functor (Both f g) where
 --              Errors ["fail 1","fail 2"]]
 
 instance (Applicative f, Applicative g) => Applicative (Both f g) where
-  pure = todo
-  liftA2 = todo
+  pure a = Both $ pure $ pure a
+  liftA2 f (Both a) (Both b) = Both $ liftA2 (liftA2 f) a b
